@@ -1,6 +1,17 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
-  inherit (lib) getExe optionalString mkIf mkOption types;
+  inherit (lib)
+    getExe
+    optionalString
+    mkIf
+    mkOption
+    types
+    ;
 
   cfg = config.programs.mcfly;
 
@@ -11,44 +22,58 @@ let
   # See: https://github.com/nix-community/home-manager/issues/6663
   # and https://github.com/bnprks/mcfly-fzf/issues/10
 
-  bashIntegration = ''
-    eval "$(${getExe pkgs.mcfly} init bash)"
-  '' + optionalString cfg.fzf.enable ''
-    if [[ $- =~ i ]]; then
-      eval "$(${getExe pkgs.mcfly-fzf} init bash)"
-    fi
-  '';
+  bashIntegration =
+    ''
+      eval "$(${getExe cfg.package} init bash)"
+    ''
+    + optionalString cfg.fzf.enable ''
+      if [[ $- =~ i ]]; then
+        eval "$(${getExe cfg.mcflyFzfPackage} init bash)"
+      fi
+    '';
 
-  fishIntegration = ''
-    ${getExe pkgs.mcfly} init fish | source
-  '' + optionalString cfg.fzf.enable ''
-    eval "$(${getExe pkgs.mcfly-fzf} init fish)"
-  '';
+  fishIntegration =
+    ''
+      ${getExe cfg.package} init fish | source
+    ''
+    + optionalString cfg.fzf.enable ''
+      ${getExe cfg.mcflyFzfPackage} init fish | source
+    '';
 
-  zshIntegration = ''
-    eval "$(${getExe pkgs.mcfly} init zsh)"
-  '' + optionalString cfg.fzf.enable ''
-    if [[ -o interactive ]]; then
-      ${getExe pkgs.mcfly-fzf} init zsh | source
-    fi
-  '';
+  zshIntegration =
+    ''
+      eval "$(${getExe cfg.package} init zsh)"
+    ''
+    + optionalString cfg.fzf.enable ''
+      if [[ -o interactive ]]; then
+      eval "$(${getExe cfg.mcflyFzfPackage} init zsh)"
+      fi
+    '';
 
-in {
+in
+{
   meta.maintainers = [ ];
 
   imports = [
     (lib.mkChangedOptionModule # \
       [ "programs" "mcfly" "enableFuzzySearch" ] # \
       [ "programs" "mcfly" "fuzzySearchFactor" ] # \
-      (config:
+      (
+        config:
         let
-          value = lib.getAttrFromPath [ "programs" "mcfly" "enableFuzzySearch" ]
-            config;
-        in if value then 2 else 0))
+          value = lib.getAttrFromPath [ "programs" "mcfly" "enableFuzzySearch" ] config;
+        in
+        if value then 2 else 0
+      )
+    )
   ];
 
   options.programs.mcfly = {
     enable = lib.mkEnableOption "mcfly";
+
+    package = lib.mkPackageOption pkgs "mcfly" { };
+
+    mcflyFzfPackage = lib.mkPackageOption pkgs "mcfly-fzf" { };
 
     settings = mkOption {
       type = tomlFormat.type;
@@ -82,7 +107,10 @@ in {
     };
 
     keyScheme = mkOption {
-      type = types.enum [ "emacs" "vim" ];
+      type = types.enum [
+        "emacs"
+        "vim"
+      ];
       default = "emacs";
       description = ''
         Key scheme to use.
@@ -90,7 +118,10 @@ in {
     };
 
     interfaceView = mkOption {
-      type = types.enum [ "TOP" "BOTTOM" ];
+      type = types.enum [
+        "TOP"
+        "BOTTOM"
+      ];
       default = "TOP";
       description = ''
         Interface view to use.
@@ -117,42 +148,39 @@ in {
       '';
     };
 
-    enableBashIntegration =
-      lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
 
-    enableFishIntegration =
-      lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
 
-    enableZshIntegration =
-      lib.hm.shell.mkZshIntegrationOption { inherit config; };
+    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
   };
 
-  config = mkIf cfg.enable (lib.mkMerge [
-    {
-      home.packages = [ pkgs.mcfly ]
-        ++ lib.optional cfg.fzf.enable pkgs.mcfly-fzf;
+  config = mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        home.packages = [ cfg.package ] ++ lib.optional cfg.fzf.enable cfg.package;
 
-      # Oddly enough, McFly expects this in the data path, not in config.
-      xdg.dataFile."mcfly/config.toml" = mkIf (cfg.settings != { }) {
-        source = tomlFormat.generate "mcfly-config.toml" cfg.settings;
-      };
+        # Oddly enough, McFly expects this in the data path, not in config.
+        xdg.dataFile."mcfly/config.toml" = mkIf (cfg.settings != { }) {
+          source = tomlFormat.generate "mcfly-config.toml" cfg.settings;
+        };
 
-      programs.bash.initExtra = mkIf cfg.enableBashIntegration bashIntegration;
+        programs.bash.initExtra = mkIf cfg.enableBashIntegration bashIntegration;
 
-      programs.zsh.initContent = mkIf cfg.enableZshIntegration zshIntegration;
+        programs.zsh.initContent = mkIf cfg.enableZshIntegration zshIntegration;
 
-      programs.fish.interactiveShellInit =
-        mkIf cfg.enableFishIntegration fishIntegration;
+        programs.fish.interactiveShellInit = mkIf cfg.enableFishIntegration fishIntegration;
 
-      home.sessionVariables.MCFLY_KEY_SCHEME = cfg.keyScheme;
+        home.sessionVariables.MCFLY_KEY_SCHEME = cfg.keyScheme;
 
-      home.sessionVariables.MCFLY_INTERFACE_VIEW = cfg.interfaceView;
-    }
+        home.sessionVariables.MCFLY_INTERFACE_VIEW = cfg.interfaceView;
+      }
 
-    (mkIf cfg.enableLightTheme { home.sessionVariables.MCFLY_LIGHT = "TRUE"; })
+      (mkIf cfg.enableLightTheme { home.sessionVariables.MCFLY_LIGHT = "TRUE"; })
 
-    (mkIf (cfg.fuzzySearchFactor > 0) {
-      home.sessionVariables.MCFLY_FUZZY = cfg.fuzzySearchFactor;
-    })
-  ]);
+      (mkIf (cfg.fuzzySearchFactor > 0) {
+        home.sessionVariables.MCFLY_FUZZY = cfg.fuzzySearchFactor;
+      })
+    ]
+  );
 }

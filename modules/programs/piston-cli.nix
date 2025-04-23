@@ -1,19 +1,20 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.piston-cli;
   yamlFormat = pkgs.formats.yaml { };
-in {
+in
+{
   meta.maintainers = with lib.maintainers; [ ethancedwards8 ];
 
   options.programs.piston-cli = {
     enable = lib.mkEnableOption "piston-cli, code runner";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.piston-cli;
-      defaultText = lib.literalExpression "pkgs.piston-cli";
-      description = "The piston-cli package to use.";
-    };
+    package = lib.mkPackageOption pkgs "piston-cli" { };
 
     settings = lib.mkOption {
       type = yamlFormat.type;

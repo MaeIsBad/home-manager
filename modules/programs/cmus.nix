@@ -1,10 +1,19 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.programs.cmus;
-in {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.programs.cmus;
+in
+{
   meta.maintainers = [ lib.hm.maintainers.joygnu ];
 
   options.programs.cmus = {
     enable = lib.mkEnableOption "Enable cmus, the music player.";
+
+    package = lib.mkPackageOption pkgs "cmus" { nullable = true; };
 
     theme = lib.mkOption {
       type = lib.types.lines;
@@ -28,7 +37,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.cmus ];
+    home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
     home.file.".config/cmus/rc".text = ''
       ${lib.optionalString (cfg.theme != "") "colorscheme ${cfg.theme}"}

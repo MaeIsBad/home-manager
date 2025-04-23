@@ -1,10 +1,19 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.programs.noti;
-in {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.programs.noti;
+in
+{
   meta.maintainers = [ ];
 
   options.programs.noti = {
     enable = lib.mkEnableOption "Noti";
+
+    package = lib.mkPackageOption pkgs "noti" { nullable = true; };
 
     settings = lib.mkOption {
       type = with lib.types; attrsOf (attrsOf str);
@@ -32,7 +41,7 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.noti ];
+    home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
     xdg.configFile."noti/noti.yaml" = lib.mkIf (cfg.settings != { }) {
       text = lib.generators.toYAML { } cfg.settings;

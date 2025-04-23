@@ -1,20 +1,21 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.ncspot;
 
   tomlFormat = pkgs.formats.toml { };
-in {
+in
+{
   meta.maintainers = [ ];
 
   options.programs.ncspot = {
     enable = lib.mkEnableOption "ncspot";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.ncspot;
-      defaultText = lib.literalExpression "pkgs.ncspot";
-      description = "The package to use for ncspot.";
-    };
+    package = lib.mkPackageOption pkgs "ncspot" { };
 
     settings = lib.mkOption {
       type = tomlFormat.type;

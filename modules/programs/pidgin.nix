@@ -1,18 +1,20 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.programs.pidgin;
-in {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.programs.pidgin;
+in
+{
   meta.maintainers = [ lib.maintainers.rycee ];
 
   options = {
     programs.pidgin = {
       enable = lib.mkEnableOption "Pidgin messaging client";
 
-      package = lib.mkOption {
-        type = lib.types.package;
-        default = pkgs.pidgin;
-        defaultText = lib.literalExpression "pkgs.pidgin";
-        description = "The Pidgin package to use.";
-      };
+      package = lib.mkPackageOption pkgs "pidgin" { };
 
       plugins = lib.mkOption {
         default = [ ];

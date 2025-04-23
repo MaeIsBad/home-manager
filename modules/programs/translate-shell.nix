@@ -1,10 +1,17 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.translate-shell;
 
-  mkKeyValue = key: value:
+  mkKeyValue =
+    key: value:
     let
-      formatValue = v:
+      formatValue =
+        v:
         if lib.isBool v then
           (if v then "true" else "false")
         else if lib.isString v then
@@ -13,23 +20,36 @@ let
           "[ ${lib.concatStringsSep " " (map formatValue v)} ]"
         else
           toString v;
-    in ":${key} ${formatValue value}";
+    in
+    ":${key} ${formatValue value}";
 
   toKeyValue = lib.generators.toKeyValue { inherit mkKeyValue; };
 
-in {
+in
+{
   meta.maintainers = [ ];
 
   options.programs.translate-shell = {
     enable = lib.mkEnableOption "translate-shell";
 
+    package = lib.mkPackageOption pkgs "translate-shell" { nullable = true; };
+
     settings = lib.mkOption {
-      type = with lib.types; attrsOf (oneOf [ bool str (listOf str) ]);
+      type =
+        with lib.types;
+        attrsOf (oneOf [
+          bool
+          str
+          (listOf str)
+        ]);
       default = { };
       example = {
         verbose = true;
         hl = "en";
-        tl = [ "es" "fr" ];
+        tl = [
+          "es"
+          "fr"
+        ];
       };
       description = ''
         Options to add to {file}`$XDG_CONFIG_HOME/translate-shell/init.trans` file.
@@ -40,9 +60,10 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    home.packages = [ pkgs.translate-shell ];
+    home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
-    xdg.configFile."translate-shell/init.trans" =
-      lib.mkIf (cfg.settings != { }) { text = "{${toKeyValue cfg.settings}}"; };
+    xdg.configFile."translate-shell/init.trans" = lib.mkIf (cfg.settings != { }) {
+      text = "{${toKeyValue cfg.settings}}";
+    };
   };
 }

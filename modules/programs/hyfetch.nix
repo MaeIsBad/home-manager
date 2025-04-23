@@ -1,20 +1,21 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.hyfetch;
 
   jsonFormat = pkgs.formats.json { };
-in {
+in
+{
   meta.maintainers = [ lib.hm.maintainers.lilyinstarlight ];
 
   options.programs.hyfetch = {
     enable = lib.mkEnableOption "hyfetch";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.hyfetch;
-      defaultText = lib.literalExpression "pkgs.hyfetch";
-      description = "The hyfetch package to use.";
-    };
+    package = lib.mkPackageOption pkgs "hyfetch" { };
 
     settings = lib.mkOption {
       type = jsonFormat.type;

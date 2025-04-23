@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   cfg = config.programs.rbw;
 
@@ -57,17 +62,15 @@ let
       };
     };
   };
-in {
+in
+{
   meta.maintainers = with lib.hm.maintainers; [ ambroisie ];
 
   options.programs.rbw = {
     enable = lib.mkEnableOption "rbw, a CLI Bitwarden client";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.rbw;
-      defaultText = lib.literalExpression "pkgs.rbw";
-      description = ''
+    package = lib.mkPackageOption pkgs "rbw" {
+      extraDescription = ''
         Package providing the {command}`rbw` tool and its
         {command}`rbw-agent` daemon.
       '';
@@ -90,20 +93,21 @@ in {
     };
   };
 
-  config = lib.mkIf cfg.enable (lib.mkMerge [
-    {
-      home.packages = [ cfg.package ];
-    }
+  config = lib.mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        home.packages = [ cfg.package ];
+      }
 
-    # Only manage configuration if not empty
-    (lib.mkIf (cfg.settings != null && !isDarwin) {
-      xdg.configFile."rbw/config.json".source =
-        jsonFormat.generate "rbw-config.json" cfg.settings;
-    })
+      # Only manage configuration if not empty
+      (lib.mkIf (cfg.settings != null && !isDarwin) {
+        xdg.configFile."rbw/config.json".source = jsonFormat.generate "rbw-config.json" cfg.settings;
+      })
 
-    (lib.mkIf (cfg.settings != null && isDarwin) {
-      home.file."Library/Application Support/rbw/config.json".source =
-        jsonFormat.generate "rbw-config.json" cfg.settings;
-    })
-  ]);
+      (lib.mkIf (cfg.settings != null && isDarwin) {
+        home.file."Library/Application Support/rbw/config.json".source =
+          jsonFormat.generate "rbw-config.json" cfg.settings;
+      })
+    ]
+  );
 }

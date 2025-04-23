@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkIf mkOption types;
 
@@ -24,17 +29,13 @@ let
     };
   };
 
-in {
+in
+{
   options = {
     programs.jq = {
       enable = lib.mkEnableOption "the jq command-line JSON processor";
 
-      package = mkOption {
-        type = types.package;
-        default = pkgs.jq;
-        defaultText = lib.literalExpression "pkgs.jq";
-        description = "jq package to use.";
-      };
+      package = lib.mkPackageOption pkgs "jq" { };
 
       colors = mkOption {
         description = ''
@@ -76,10 +77,12 @@ in {
   config = mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    home.sessionVariables = let c = cfg.colors;
-    in {
-      JQ_COLORS =
-        "${c.null}:${c.false}:${c.true}:${c.numbers}:${c.strings}:${c.arrays}:${c.objects}:${c.objectKeys}";
-    };
+    home.sessionVariables =
+      let
+        c = cfg.colors;
+      in
+      {
+        JQ_COLORS = "${c.null}:${c.false}:${c.true}:${c.numbers}:${c.strings}:${c.arrays}:${c.objects}:${c.objectKeys}";
+      };
   };
 }

@@ -1,26 +1,24 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) literalExpression mkOption types;
 
   cfg = config.programs.password-store;
 
-in {
+in
+{
   meta.maintainers = with lib.maintainers; [ euxane ];
 
   options.programs.password-store = {
     enable = lib.mkEnableOption "Password store";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.pass;
-      defaultText = literalExpression "pkgs.pass";
-      example = literalExpression ''
-        pkgs.pass.withExtensions (exts: [ exts.pass-otp ])
-      '';
-      description = ''
-        The `pass` package to use.
-        Can be used to specify extensions.
-      '';
+    package = lib.mkPackageOption pkgs "pass" {
+      example = "pkgs.pass.withExtensions (exts: [ exts.pass-otp ])";
+      extraDescription = "Can be used to specify extensions.";
     };
 
     settings = mkOption rec {
@@ -54,10 +52,10 @@ in {
     home.packages = [ cfg.package ];
     home.sessionVariables = cfg.settings;
 
-    services.pass-secret-service.storePath =
-      lib.mkDefault cfg.settings.PASSWORD_STORE_DIR;
+    services.pass-secret-service.storePath = lib.mkDefault cfg.settings.PASSWORD_STORE_DIR;
 
-    xsession.importedVariables = lib.mkIf config.xsession.enable
-      (lib.mapAttrsToList (name: value: name) cfg.settings);
+    xsession.importedVariables = lib.mkIf config.xsession.enable (
+      lib.mapAttrsToList (name: value: name) cfg.settings
+    );
   };
 }

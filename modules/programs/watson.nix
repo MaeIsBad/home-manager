@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkIf;
 
@@ -6,32 +11,23 @@ let
 
   iniFormat = pkgs.formats.ini { };
 
-  configDir = if pkgs.stdenv.hostPlatform.isDarwin then
-    "Library/Application Support"
-  else
-    config.xdg.configHome;
+  configDir =
+    if pkgs.stdenv.hostPlatform.isDarwin then "Library/Application Support" else config.xdg.configHome;
 
-in {
+in
+{
   meta.maintainers = [ ];
 
   options.programs.watson = {
     enable = lib.mkEnableOption "watson, a wonderful CLI to track your time";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.watson;
-      defaultText = lib.literalExpression "pkgs.watson";
-      description = "Package providing the {command}`watson`.";
-    };
+    package = lib.mkPackageOption pkgs "watson" { };
 
-    enableBashIntegration =
-      lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
 
-    enableFishIntegration =
-      lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
 
-    enableZshIntegration =
-      lib.hm.shell.mkZshIntegrationOption { inherit config; };
+    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
 
     settings = lib.mkOption {
       type = iniFormat.type;

@@ -1,11 +1,20 @@
-{ config, lib, pkgs, ... }:
-let cfg = config.programs.todoman;
-in {
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
+let
+  cfg = config.programs.todoman;
+in
+{
 
   meta.maintainers = [ lib.hm.maintainers.mikilio ];
 
   options.programs.todoman = {
     enable = lib.mkEnableOption "todoman";
+
+    package = lib.mkPackageOption pkgs "todoman" { nullable = true; };
 
     glob = lib.mkOption {
       type = lib.types.str;
@@ -36,15 +45,17 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    assertions = [{
-      assertion = config.accounts.calendar ? basePath;
-      message = ''
-        A base directory for calendars must be specified via
-        `accounts.calendar.basePath` to generate config for todoman
-      '';
-    }];
+    assertions = [
+      {
+        assertion = config.accounts.calendar ? basePath;
+        message = ''
+          A base directory for calendars must be specified via
+          `accounts.calendar.basePath` to generate config for todoman
+        '';
+      }
+    ];
 
-    home.packages = [ pkgs.todoman ];
+    home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
 
     xdg.configFile."todoman/config.py".text = lib.concatLines [
       ''path = "${config.accounts.calendar.basePath}/${cfg.glob}"''

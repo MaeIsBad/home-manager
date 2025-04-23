@@ -1,9 +1,15 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkIf;
 
   cfg = config.programs.scmpuff;
-in {
+in
+{
   meta.maintainers = [ lib.maintainers.cpcloud ];
 
   options.programs.scmpuff = {
@@ -11,21 +17,13 @@ in {
       scmpuff, a command line tool that allows you to work quicker with Git by
       substituting numeric shortcuts for files'';
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.scmpuff;
-      defaultText = lib.literalExpression "pkgs.scmpuff";
-      description = "Package providing the {command}`scmpuff` tool.";
-    };
+    package = lib.mkPackageOption pkgs "scmpuff" { };
 
-    enableBashIntegration =
-      lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
 
-    enableFishIntegration =
-      lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
 
-    enableZshIntegration =
-      lib.hm.shell.mkZshIntegrationOption { inherit config; };
+    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
 
     enableAliases = lib.mkOption {
       default = true;
@@ -36,24 +34,30 @@ in {
     };
   };
 
-  config = mkIf cfg.enable (let
-    mkArgs = shell:
-      lib.concatStringsSep " " ([ "--shell=${shell}" ]
-        ++ lib.optional (!cfg.enableAliases) "--aliases=false");
-  in {
-    home.packages = [ cfg.package ];
+  config = mkIf cfg.enable (
+    let
+      mkArgs =
+        shell:
+        lib.concatStringsSep " " (
+          [ "--shell=${shell}" ] ++ lib.optional (!cfg.enableAliases) "--aliases=false"
+        );
+    in
+    {
+      home.packages = [ cfg.package ];
 
-    programs.bash.initExtra = mkIf cfg.enableBashIntegration ''
-      eval "$(${cfg.package}/bin/scmpuff init ${mkArgs "bash"})"
-    '';
+      programs.bash.initExtra = mkIf cfg.enableBashIntegration ''
+        eval "$(${cfg.package}/bin/scmpuff init ${mkArgs "bash"})"
+      '';
 
-    programs.zsh.initContent = mkIf cfg.enableZshIntegration ''
-      eval "$(${cfg.package}/bin/scmpuff init ${mkArgs "zsh"})"
-    '';
+      programs.zsh.initContent = mkIf cfg.enableZshIntegration ''
+        eval "$(${cfg.package}/bin/scmpuff init ${mkArgs "zsh"})"
+      '';
 
-    programs.fish.interactiveShellInit = mkIf cfg.enableFishIntegration
-      (lib.mkAfter ''
-        ${cfg.package}/bin/scmpuff init ${mkArgs "fish"} | source
-      '');
-  });
+      programs.fish.interactiveShellInit = mkIf cfg.enableFishIntegration (
+        lib.mkAfter ''
+          ${cfg.package}/bin/scmpuff init ${mkArgs "fish"} | source
+        ''
+      );
+    }
+  );
 }

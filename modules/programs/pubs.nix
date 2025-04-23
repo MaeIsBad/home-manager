@@ -1,21 +1,22 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkOption types;
 
   cfg = config.programs.pubs;
 
-in {
+in
+{
   meta.maintainers = [ lib.hm.maintainers.loicreynier ];
 
   options.programs.pubs = {
     enable = lib.mkEnableOption "pubs";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.pubs;
-      defaultText = lib.literalExpression "pkgs.pubs";
-      description = "The package to use for the pubs script.";
-    };
+    package = lib.mkPackageOption pkgs "pubs" { };
 
     extraConfig = mkOption {
       type = types.lines;
@@ -52,7 +53,6 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    home.file.".pubsrc" =
-      lib.mkIf (cfg.extraConfig != "") { text = cfg.extraConfig; };
+    home.file.".pubsrc" = lib.mkIf (cfg.extraConfig != "") { text = cfg.extraConfig; };
   };
 }

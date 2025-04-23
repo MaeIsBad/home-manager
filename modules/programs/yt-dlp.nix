@@ -1,30 +1,39 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkOption types;
 
   cfg = config.programs.yt-dlp;
 
-  renderSettings = lib.mapAttrsToList (name: value:
+  renderSettings = lib.mapAttrsToList (
+    name: value:
     if lib.isBool value then
       if value then "--${name}" else "--no-${name}"
     else
-      "--${name} ${toString value}");
+      "--${name} ${toString value}"
+  );
 
-in {
+in
+{
   meta.maintainers = [ ];
 
   options.programs.yt-dlp = {
     enable = lib.mkEnableOption "yt-dlp";
 
-    package = mkOption {
-      type = types.package;
-      default = pkgs.yt-dlp;
-      defaultText = lib.literalExpression "pkgs.yt-dlp";
-      description = "Package providing the {command}`yt-dlp` tool.";
-    };
+    package = lib.mkPackageOption pkgs "yt-dlp" { };
 
     settings = mkOption {
-      type = with types; attrsOf (oneOf [ bool int str ]);
+      type =
+        with types;
+        attrsOf (oneOf [
+          bool
+          int
+          str
+        ]);
       default = { };
       example = lib.literalExpression ''
         {
@@ -64,11 +73,10 @@ in {
   config = lib.mkIf cfg.enable {
     home.packages = [ cfg.package ];
 
-    xdg.configFile."yt-dlp/config" =
-      lib.mkIf (cfg.settings != { } || cfg.extraConfig != "") {
-        text = lib.concatStringsSep "\n"
-          (lib.remove "" (renderSettings cfg.settings ++ [ cfg.extraConfig ]))
-          + "\n";
-      };
+    xdg.configFile."yt-dlp/config" = lib.mkIf (cfg.settings != { } || cfg.extraConfig != "") {
+      text =
+        lib.concatStringsSep "\n" (lib.remove "" (renderSettings cfg.settings ++ [ cfg.extraConfig ]))
+        + "\n";
+    };
   };
 }

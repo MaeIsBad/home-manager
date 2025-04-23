@@ -1,12 +1,24 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkIf mkOption types;
 
   cfg = config.programs.pistol;
 
-  configFile = lib.concatStringsSep "\n" (map ({ fpath, mime, command }:
-    if fpath == "" then "${mime} ${command}" else "fpath ${fpath} ${command}")
-    cfg.associations);
+  configFile = lib.concatStringsSep "\n" (
+    map (
+      {
+        fpath,
+        mime,
+        command,
+      }:
+      if fpath == "" then "${mime} ${command}" else "fpath ${fpath} ${command}"
+    ) cfg.associations
+  );
 
   association = types.submodule {
     options = {
@@ -28,16 +40,22 @@ let
       };
     };
   };
-in {
+in
+{
   imports = [
-    (lib.mkRemovedOptionModule [ "programs" "pistol" "config" ]
-      "Pistol is now configured with programs.pistol.associations.")
+    (lib.mkRemovedOptionModule [
+      "programs"
+      "pistol"
+      "config"
+    ] "Pistol is now configured with programs.pistol.associations.")
   ];
 
   meta.maintainers = [ lib.hm.maintainers.mtoohey ];
 
   options.programs.pistol = {
     enable = lib.mkEnableOption "file previewer for terminal file managers";
+
+    package = lib.mkPackageOption pkgs "pistol" { nullable = true; };
 
     associations = mkOption {
       type = types.listOf association;
@@ -57,28 +75,31 @@ in {
 
   };
 
-  config = mkIf cfg.enable (lib.mkMerge [
-    {
-      assertions = [{
-        assertion = lib.all ({ fpath, mime, ... }:
-          (fpath != "" && mime == "") || (fpath == "" && mime != ""))
-          cfg.associations;
-        message = ''
-          Each entry in programs.pistol.associations must contain exactly one
-          of fpath or mime.
-        '';
-      }];
+  config = mkIf cfg.enable (
+    lib.mkMerge [
+      {
+        assertions = [
+          {
+            assertion = lib.all (
+              { fpath, mime, ... }: (fpath != "" && mime == "") || (fpath == "" && mime != "")
+            ) cfg.associations;
+            message = ''
+              Each entry in programs.pistol.associations must contain exactly one
+              of fpath or mime.
+            '';
+          }
+        ];
 
-      home.packages = [ pkgs.pistol ];
-    }
+        home.packages = lib.mkIf (cfg.package != null) [ cfg.package ];
+      }
 
-    (mkIf (cfg.associations != [ ] && pkgs.stdenv.hostPlatform.isDarwin) {
-      home.file."Library/Application Support/pistol/pistol.conf".text =
-        configFile;
-    })
+      (mkIf (cfg.associations != [ ] && pkgs.stdenv.hostPlatform.isDarwin) {
+        home.file."Library/Application Support/pistol/pistol.conf".text = configFile;
+      })
 
-    (mkIf (cfg.associations != [ ] && !pkgs.stdenv.hostPlatform.isDarwin) {
-      xdg.configFile."pistol/pistol.conf".text = configFile;
-    })
-  ]);
+      (mkIf (cfg.associations != [ ] && !pkgs.stdenv.hostPlatform.isDarwin) {
+        xdg.configFile."pistol/pistol.conf".text = configFile;
+      })
+    ]
+  );
 }

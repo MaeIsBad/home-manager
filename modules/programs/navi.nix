@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 let
   inherit (lib) mkIf;
 
@@ -6,23 +11,20 @@ let
 
   yamlFormat = pkgs.formats.yaml { };
 
-  configDir = if pkgs.stdenv.isDarwin && !config.xdg.enable then
-    "Library/Application Support"
-  else
-    config.xdg.configHome;
+  configDir =
+    if pkgs.stdenv.isDarwin && !config.xdg.enable then
+      "Library/Application Support"
+    else
+      config.xdg.configHome;
 
-in {
+in
+{
   meta.maintainers = [ ];
 
   options.programs.navi = {
     enable = lib.mkEnableOption "Navi";
 
-    package = lib.mkOption {
-      type = lib.types.package;
-      default = pkgs.navi;
-      defaultText = lib.literalExpression "pkgs.navi";
-      description = "The package to use for the navi binary.";
-    };
+    package = lib.mkPackageOption pkgs "navi" { };
 
     settings = lib.mkOption {
       type = yamlFormat.type;
@@ -46,14 +48,11 @@ in {
       '';
     };
 
-    enableBashIntegration =
-      lib.hm.shell.mkBashIntegrationOption { inherit config; };
+    enableBashIntegration = lib.hm.shell.mkBashIntegrationOption { inherit config; };
 
-    enableFishIntegration =
-      lib.hm.shell.mkFishIntegrationOption { inherit config; };
+    enableFishIntegration = lib.hm.shell.mkFishIntegrationOption { inherit config; };
 
-    enableZshIntegration =
-      lib.hm.shell.mkZshIntegrationOption { inherit config; };
+    enableZshIntegration = lib.hm.shell.mkZshIntegrationOption { inherit config; };
   };
 
   config = mkIf cfg.enable {

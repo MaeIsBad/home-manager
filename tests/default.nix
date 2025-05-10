@@ -41,11 +41,7 @@ let
       if lib.isDerivation value then scrubbedValue // newDrvAttrs else scrubbedValue
     else
       value;
-  scrubDerivations =
-    attrs:
-    let
-    in
-    lib.mapAttrs scrubDerivation attrs;
+  scrubDerivations = attrs: lib.mapAttrs scrubDerivation attrs;
 
   # Globally unscrub a few selected packages that are used by a wide selection of tests.
   whitelist =
@@ -81,173 +77,7 @@ let
     outer;
 
   # TODO: figure out stdenv stubbing so we don't have to do this
-  darwinBlacklist =
-    let
-      # List of packages that need to be scrubbed on Darwin
-      # Packages are scrubbed in linux and expected in test output
-      packagesToScrub = [
-        "aerc"
-        "aerospace"
-        "alacritty"
-        "alot"
-        "antidote"
-        "aria2"
-        "atuin"
-        "autojump"
-        "bacon"
-        "bash"
-        "bashInteractive"
-        "bash-completion"
-        "bash-preexec"
-        "bat"
-        "borgmatic"
-        "bottom"
-        "broot"
-        "browserpass"
-        "btop"
-        "carapace"
-        "cava"
-        "cmus"
-        "comodoro"
-        "darcs"
-        "dircolors"
-        "delta"
-        "direnv"
-        "earthly"
-        "emacs"
-        "espanso"
-        "fastfetch"
-        "feh"
-        "gallery-dl"
-        "gh"
-        "gh-dash"
-        "ghostty"
-        "git"
-        "git-cliff"
-        "git-credential-oauth"
-        "git-worktree-switcher"
-        "gnupg"
-        "go"
-        "granted"
-        "helix"
-        "himalaya"
-        "hjson-go"
-        "htop"
-        "hyfetch"
-        "i3status"
-        "irssi"
-        "jankyborders"
-        "jujutsu"
-        "joplin-desktop"
-        "jqp"
-        "k9s"
-        "kakoune"
-        "khal"
-        "khard"
-        "kitty"
-        "kubecolor"
-        "lapce"
-        "lazydocker"
-        "lazygit"
-        "ledger"
-        "less"
-        "lesspipe"
-        "lf"
-        "lsd"
-        "lieer"
-        "mbsync"
-        "mergiraf"
-        "micro"
-        "mise"
-        "mpv"
-        "mu"
-        "mujmap"
-        "msmtp"
-        "ne"
-        "neomutt"
-        "neovide"
-        "neovim"
-        "nheko"
-        "nix"
-        "nix-index"
-        "nix-your-shell"
-        "notmuch"
-        "npth"
-        "nushell"
-        "ollama"
-        "onlyoffice-desktopeditors"
-        "openstackclient"
-        "papis"
-        "pay-respects"
-        "pet"
-        "pistol"
-        "pls"
-        "poetry"
-        "powerline-go"
-        "pubs"
-        "pyenv"
-        "qcal"
-        "qutebrowser"
-        "ranger"
-        "rio"
-        "ripgrep"
-        "ruff"
-        "sage"
-        "sapling"
-        "sbt"
-        "scmpuff"
-        "senpai"
-        "sftpman"
-        "sioyek"
-        "skhd"
-        "sm64ex"
-        "smug"
-        "spotify-player"
-        "starship"
-        "taskwarrior"
-        "tealdeer"
-        "texlive"
-        "thefuck"
-        "thunderbird"
-        "tmate"
-        "topgrade"
-        "translate-shell"
-        "vifm"
-        "vim-vint"
-        "vimPlugins"
-        "vscode"
-        "watson"
-        "wezterm"
-        "yazi"
-        "yq-go"
-        "yubikey-agent"
-        "zed-editor"
-        "zellij"
-        "zk"
-        "zoxide"
-        "zplug"
-        "zsh"
-      ];
-
-      inner =
-        self: super:
-        lib.mapAttrs (
-          name: value:
-          if lib.elem name packagesToScrub then
-            # Apply scrubbing to this specific package
-            scrubDerivation name value
-          else
-            value
-        ) super;
-
-      outer =
-        self: super:
-        inner self super
-        // {
-          buildPackages = super.buildPackages.extend inner;
-        };
-    in
-    outer;
+  darwinScrublist = import ./darwinScrublist.nix { inherit lib scrubDerivation; };
 
   scrubbedPkgs =
     # TODO: fix darwin stdenv stubbing
@@ -255,7 +85,7 @@ let
       let
         rawPkgs = lib.makeExtensible (final: pkgs);
       in
-      builtins.traceVerbose "eval scrubbed darwin nixpkgs" (rawPkgs.extend darwinBlacklist)
+      builtins.traceVerbose "eval scrubbed darwin nixpkgs" (rawPkgs.extend darwinScrublist)
     else
       let
         rawScrubbedPkgs = lib.makeExtensible (final: scrubDerivations pkgs);
@@ -362,8 +192,13 @@ import nmtSrc {
       ./modules/programs/direnv
       ./modules/programs/earthly
       ./modules/programs/emacs
+      ./modules/programs/eza
       ./modules/programs/fastfetch
       ./modules/programs/feh
+      ./modules/programs/firefox
+      ./modules/programs/firefox/firefox.nix
+      ./modules/programs/firefox/floorp.nix
+      ./modules/programs/firefox/librewolf.nix
       ./modules/programs/fish
       ./modules/programs/gallery-dl
       ./modules/programs/gh
@@ -443,6 +278,7 @@ import nmtSrc {
       ./modules/programs/rio
       ./modules/programs/ripgrep
       ./modules/programs/ripgrep-all
+      ./modules/programs/rmpc
       ./modules/programs/ruff
       ./modules/programs/sagemath
       ./modules/programs/sapling
@@ -473,9 +309,11 @@ import nmtSrc {
       ./modules/programs/uv
       ./modules/programs/vifm
       ./modules/programs/vim-vint
+      ./modules/programs/visidata
       ./modules/programs/vscode
       ./modules/programs/wallust
       ./modules/programs/watson
+      ./modules/programs/waveterm
       ./modules/programs/wezterm
       ./modules/programs/yazi
       ./modules/programs/zed-editor
@@ -490,6 +328,7 @@ import nmtSrc {
     ++ lib.optionals isDarwin [
       ./modules/launchd
       ./modules/programs/aerospace
+      ./modules/programs/element-desktop/darwin.nix
       ./modules/services/emacs-darwin
       ./modules/services/espanso-darwin
       ./modules/services/git-sync-darwin
@@ -523,11 +362,8 @@ import nmtSrc {
       ./modules/programs/boxxy
       ./modules/programs/cavalier
       ./modules/programs/distrobox
+      ./modules/programs/element-desktop/linux.nix
       ./modules/programs/eww
-      ./modules/programs/firefox
-      ./modules/programs/firefox/firefox.nix
-      ./modules/programs/firefox/floorp.nix
-      ./modules/programs/firefox/librewolf.nix
       ./modules/programs/foot
       ./modules/programs/freetube
       ./modules/programs/fuzzel
@@ -536,18 +372,25 @@ import nmtSrc {
       ./modules/programs/gnome-terminal
       ./modules/programs/hexchat
       ./modules/programs/hyprlock
+      ./modules/programs/i3bar-river
       ./modules/programs/i3blocks
       ./modules/programs/i3status-rust
       ./modules/programs/imv
       ./modules/programs/kodi
+      ./modules/programs/kickoff
       ./modules/programs/looking-glass-client
+      ./modules/programs/lutris
       ./modules/programs/mangohud
+      ./modules/programs/mpvpaper
       ./modules/programs/ncmpcpp-linux
       ./modules/programs/nh
+      ./modules/programs/onagre
+      ./modules/programs/onedrive
       ./modules/programs/pqiv
       ./modules/programs/rbw
       ./modules/programs/rofi
       ./modules/programs/rofi-pass
+      ./modules/programs/sway-easyfocus
       ./modules/programs/swayimg
       ./modules/programs/swaylock
       ./modules/programs/swayr
@@ -556,6 +399,7 @@ import nmtSrc {
       ./modules/programs/vesktop
       ./modules/programs/vinegar
       ./modules/programs/waybar
+      ./modules/programs/wayprompt
       ./modules/programs/wlogout
       ./modules/programs/wofi
       ./modules/programs/xmobar
@@ -567,6 +411,7 @@ import nmtSrc {
       ./modules/services/blanket
       ./modules/services/borgmatic
       ./modules/services/cachix-agent
+      ./modules/services/clipcat
       ./modules/services/cliphist
       ./modules/services/clipman
       ./modules/services/clipse
@@ -598,6 +443,7 @@ import nmtSrc {
       ./modules/services/lieer
       ./modules/services/linux-wallpaperengine
       ./modules/services/lxqt-policykit-agent
+      ./modules/services/mako
       ./modules/services/mopidy
       ./modules/services/mpd
       ./modules/services/mpd-mpris

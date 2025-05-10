@@ -106,6 +106,29 @@ in
           "--keep-hourly 3"
         ];
       };
+
+      prune-opts = {
+        inherit passwordFile paths exclude;
+        initialize = true;
+        repository = "/home/alice/repos/prune-opts";
+        pruneOpts = [
+          "--keep-yearly 4"
+          "--keep-monthly 3"
+          "--keep-weekly 2"
+          "--keep-daily 2"
+          "--keep-hourly 3"
+        ];
+      };
+
+      env-file = {
+        inherit passwordFile paths exclude;
+        initialize = true;
+        repository = "/home/alice/repos/env-file";
+        environmentFile = "${pkgs.writeText "environmentFile" ''
+          SECRET=1234
+          TOKEN=123456789ABcdEF
+        ''}";
+      };
     };
   };
 }

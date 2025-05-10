@@ -97,6 +97,7 @@ let
       ./programs/distrobox.nix
       ./programs/earthly.nix
       ./programs/eclipse.nix
+      ./programs/element-desktop.nix
       ./programs/emacs.nix
       ./programs/eww.nix
       ./programs/eza.nix
@@ -135,6 +136,7 @@ let
       ./programs/htop.nix
       ./programs/hyfetch.nix
       ./programs/hyprlock.nix
+      ./programs/i3bar-river.nix
       ./programs/i3blocks.nix
       ./programs/i3status-rust.nix
       ./programs/i3status.nix
@@ -158,6 +160,7 @@ let
       ./programs/keychain.nix
       ./programs/khal.nix
       ./programs/khard.nix
+      ./programs/kickoff.nix
       ./programs/kitty.nix
       ./programs/kodi.nix
       ./programs/kubecolor.nix
@@ -172,6 +175,7 @@ let
       ./programs/lieer.nix
       ./programs/looking-glass-client.nix
       ./programs/lsd.nix
+      ./programs/lutris.nix
       ./programs/man.nix
       ./programs/mangohud.nix
       ./programs/matplotlib.nix
@@ -183,6 +187,7 @@ let
       ./programs/mise.nix
       ./programs/mods.nix
       ./programs/mpv.nix
+      ./programs/mpvpaper.nix
       ./programs/mr.nix
       ./programs/msmtp.nix
       ./programs/mu.nix
@@ -208,6 +213,8 @@ let
       ./programs/octant.nix
       ./programs/offlineimap.nix
       ./programs/oh-my-posh.nix
+      ./programs/onagre.nix
+      ./programs/onedrive.nix
       ./programs/onlyoffice.nix
       ./programs/opam.nix
       ./programs/openstackclient.nix
@@ -236,6 +243,7 @@ let
       ./programs/rio.nix
       ./programs/ripgrep.nix
       ./programs/ripgrep-all.nix
+      ./programs/rmpc.nix
       ./programs/rofi-pass.nix
       ./programs/rofi.nix
       ./programs/rtorrent.nix
@@ -258,6 +266,7 @@ let
       ./programs/starship.nix
       ./programs/streamlink.nix
       ./programs/superfile.nix
+      ./programs/sway-easyfocus.nix
       ./programs/swayimg.nix
       ./programs/swaylock.nix
       ./programs/swayr.nix
@@ -284,18 +293,20 @@ let
       ./programs/vdirsyncer.nix
       ./programs/vesktop.nix
       ./programs/vifm.nix
-      ./programs/vim.nix
       ./programs/vim-vint.nix
       ./programs/vim.nix
       ./programs/vinegar.nix
       ./programs/vscode.nix
       ./programs/vscode/haskell.nix
+      ./programs/visidata.nix
       ./programs/pywal.nix
       ./programs/rbenv.nix
       ./programs/wallust.nix
       ./programs/watson.nix
+      ./programs/waveterm.nix
       ./programs/waylogout.nix
       ./programs/waybar.nix
+      ./programs/wayprompt.nix
       ./programs/wezterm.nix
       ./programs/wlogout.nix
       ./programs/wofi.nix
@@ -328,6 +339,7 @@ let
       ./services/cachix-agent.nix
       ./services/caffeine.nix
       ./services/cbatticon.nix
+      ./services/clipcat.nix
       ./services/cliphist.nix
       ./services/clipman.nix
       ./services/clipmenu.nix
